@@ -92,6 +92,26 @@ if ! command -v ripgrep >/dev/null 2>&1; then
 fi
 
 # ---------------------------------------------------------------
+# Install full Python standard library (node-gyp needs shlex)
+# ---------------------------------------------------------------
+PYVER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+
+if ! python3 -c "import shlex" >/dev/null 2>&1; then
+  echo "==> Instalando stdlib de Python ${PYVER}..."
+  sudo apt-get update -qq
+  sudo apt-get install -y "libpython${PYVER}-stdlib"
+fi
+
+# ---------------------------------------------------------------
+# Install build toolchain (node-gyp needs make + a C++ compiler)
+# ---------------------------------------------------------------
+if ! command -v make >/dev/null 2>&1 || ! command -v g++ >/dev/null 2>&1; then
+  echo "==> Instalando build-essential..."
+  sudo apt-get update -qq
+  sudo apt-get install -y build-essential
+fi
+
+# ---------------------------------------------------------------
 # 6. Dependencias del proyecto
 # ---------------------------------------------------------------
 [ -f "${REPO_ROOT}/frontend/package.json" ] \
