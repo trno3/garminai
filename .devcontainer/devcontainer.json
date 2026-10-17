@@ -1,0 +1,44 @@
+{
+  "name": "pi-dev (Pi + RTK + Caveman + Go + Node + Angular)",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "dev",
+  "runServices": ["dev", "postgres"],
+  "workspaceFolder": "/workspaces/garmin",
+  "shutdownAction": "stopCompose",
+
+  "features": {
+    "ghcr.io/devcontainers/features/go:1": { "version": "latest" },
+    "ghcr.io/devcontainers/features/node:2": { "version": "24" },
+    "ghcr.io/sliekens/devcontainer-features/pi:1": { "version": "latest" }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "angular.ng-template",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "go.useLanguageServer": true,
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/.angular/**": true
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [4200, 8080, 5432],
+  "portsAttributes": {
+    "4200": { "label": "Angular (ng serve)", "onAutoForward": "openPreview" },
+    "8080": { "label": "Go API", "onAutoForward": "notify" },
+    "5432": { "label": "PostgreSQL", "onAutoForward": "silent" }
+  },
+
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}

@@ -1,0 +1,30 @@
+{
+  "permission": {
+    "*": "ask",
+    "path": {
+      "*": "ask",
+      ".": "allow",
+      ".git/*": "deny",
+      ".env": "deny",
+      ".env.*": "deny",
+      "*.pem": "deny",
+      "*.key": "deny",
+      "~/.ssh/*": "deny",
+      "~/.aws/*": "deny",
+      "~/.gnupg/*": "deny"
+    },
+    "bash": {
+      "*": "ask",
+      "rm": "ask",
+      "rm -rf": "deny",
+      "sudo": "ask",
+      "chmod 777": "deny",
+      "eval ": "deny",
+      "exec ": "deny",
+      "curl * | ": "ask",
+      "wget * | ": "ask",
+      "wget -O - | ": "ask"
+    },
+    "external_directory": "deny"
+  }
+}

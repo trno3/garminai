@@ -1,0 +1,18 @@
+# Dependencias
+node_modules/
+dist/
+.angular/
+
+# Binarios Go
+backend/bin/
+
+# Secretos
+.env
+
+# Estado local de Pi (paquetes descargados, NO la declaración)
+.pi/npm/
+.pi/git/
+.pi/settings.local.json
+
+# Volcados temporales
+*.log

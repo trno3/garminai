@@ -1,0 +1,44 @@
+services:
+  dev:
+    image: mcr.microsoft.com/devcontainers/base:bookworm
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/workspaces/garmin:cached
+      - pi-agent-home:/var/lib/pi
+    command: sleep infinity
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-appdb}?sslmode=disable
+      - PGHOST=postgres
+      - PGPORT=5432
+      - PGUSER=${DB_USER:-postgres}
+      - PGPASSWORD=${DB_PASSWORD:-postgres}
+      - PGDATABASE=${DB_NAME:-appdb}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-appdb}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-appdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
+  pi-agent-home: # <-- nuevo volumen para Pi
