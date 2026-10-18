@@ -1,5 +1,5 @@
 {
-  "name": "pi-dev (Pi + RTK + Caveman + Go + Node + Angular)",
+  "name": "pi-dev Garmin",
   "dockerComposeFile": ["../docker-compose.yml"],
   "service": "dev",
   "runServices": ["dev", "postgres"],
@@ -9,7 +9,21 @@
   "features": {
     "ghcr.io/devcontainers/features/go:1": { "version": "latest" },
     "ghcr.io/devcontainers/features/node:2": { "version": "24" },
-    "ghcr.io/sliekens/devcontainer-features/pi:1": { "version": "latest" }
+    "ghcr.io/sliekens/devcontainer-features/pi:1": { "version": "latest" },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "installOhMyZshConfig": true,
+      "configureZshAsDefaultShell": true,
+      "ohMyZshTheme": "robbyrussell",
+      "upgradePackages": false,
+      "username": "vscode"
+    },
+    "ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
+      "plugins": "git docker docker-compose node npm go zsh-autosuggestions zsh-syntax-highlighting",
+      "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-syntax-highlighting",
+      "username": "vscode"
+    }
   },
 
   "customizations": {
@@ -21,7 +35,7 @@
         "esbenp.prettier-vscode"
       ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.defaultProfile.linux": "zsh",
         "editor.formatOnSave": true,
         "go.useLanguageServer": true,
         "files.watcherExclude": {

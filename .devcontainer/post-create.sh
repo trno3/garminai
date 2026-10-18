@@ -12,7 +12,7 @@ echo "🚀 Inicializando entorno de desarrollo"
 echo "=========================================="
 
 # ---------------------------------------------------------------
-# 1. Cliente psql (antes venía del Dockerfile)
+# Cliente psql (antes venía del Dockerfile)
 # ---------------------------------------------------------------
 if ! command -v psql >/dev/null 2>&1; then
   echo "==> Instalando cliente PostgreSQL..."
@@ -20,6 +20,13 @@ if ! command -v psql >/dev/null 2>&1; then
   sudo apt-get install -y -qq --no-install-recommends postgresql-client
   sudo rm -rf /var/lib/apt/lists/*
 fi
+
+# ---------------------------------------------------------------
+# Permisos del volumen de historial de zsh
+# ---------------------------------------------------------------
+sudo mkdir -p /commandhistory
+sudo chown -R "$(whoami)" /commandhistory
+touch /commandhistory/.zsh_history
 
 # ---------------------------------------------------------------
 # 2. RTK (Rust Token Killer) — binario único, sin runtime

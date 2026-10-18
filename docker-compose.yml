@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/workspaces/garmin:cached
       - pi-agent-home:/var/lib/pi
+      - zsh-history:/commandhistory
     command: sleep infinity
     environment:
       - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-appdb}?sslmode=disable
@@ -16,6 +17,7 @@ services:
       - PGUSER=${DB_USER:-postgres}
       - PGPASSWORD=${DB_PASSWORD:-postgres}
       - PGDATABASE=${DB_NAME:-appdb}
+      - HISTFILE=/commandhistory/.zsh_history
     depends_on:
       postgres:
         condition: service_healthy
@@ -41,4 +43,5 @@ services:
 
 volumes:
   postgres-data:
-  pi-agent-home: # <-- nuevo volumen para Pi
+  pi-agent-home:
+  zsh-history:
