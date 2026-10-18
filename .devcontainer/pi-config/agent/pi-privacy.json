@@ -1,0 +1,16 @@
+{
+  "blockedPatterns": [
+    ".env",
+    ".env.*",
+    ".env.local",
+    ".env.production",
+    "*.pem",
+    "*.key",
+    "*credentials*",
+    "*secret*",
+    "*token*"
+  ],
+  "blockEgress": true,
+  "warnOnSensitiveRead": true,
+  "blockWriteProtected": false
+}

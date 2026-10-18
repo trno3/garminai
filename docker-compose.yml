@@ -3,12 +3,12 @@ services:
     image: mcr.microsoft.com/devcontainers/base:bookworm
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    env_file:
+      - ./.devcontainer/garmin.env
     volumes:
       - .:/workspaces/garmin:cached
       - pi-agent-home:/var/lib/pi
     command: sleep infinity
-    env_file:
-      - .env
     environment:
       - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-appdb}?sslmode=disable
       - PGHOST=postgres

@@ -8,6 +8,7 @@ backend/bin/
 
 # Secretos
 .env
+garmin.env
 
 # Estado local de Pi (paquetes descargados, NO la declaración)
 .pi/npm/

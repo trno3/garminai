@@ -1,0 +1,16 @@
+{
+  "protectedPaths": [
+    {
+      "id": "env-files",
+      "pattern": ".env",
+      "action": "deny",
+      "enabled": true
+    },
+    {
+      "id": "pem-files", 
+      "pattern": "*.pem",
+      "action": "deny",
+      "enabled": true
+    }
+  ]
+}

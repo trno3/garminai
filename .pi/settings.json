@@ -10,7 +10,9 @@
     "git:github.com/NVlabs/SoL-Pi",
     "npm:pi-prefix-cache-compaction",
     "npm:@bacnh85/pi-rtk@0.2.8",
-    "npm:@gotgenes/pi-permission-system"
+    "npm:@gotgenes/pi-permission-system",
+    "npm:pi-privacy",
+    "npm:@pi-vault/pi-guardrails"
   ],
   "defaultProvider": "local",
   "defaultModel": "ornith-ai/Ornith-1.5-35B-A3B-GGUF:Q4_K_M",

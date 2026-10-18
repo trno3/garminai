@@ -75,11 +75,13 @@ Adapt to existing repository conventions. Do not create empty abstractions or un
 ## Quality
 
 Backend:
+
 - `gofmt`, `go vet ./...`, `go test ./...`.
 - Unit tests for domain logic, parsing, normalization and error cases.
 - Integration tests for PostgreSQL, transactions and HTTP endpoints.
 
 Frontend:
+
 - Unit tests for services, components, filters and UI states.
 - Production build and available type/lint checks.
 - End-to-end tests for critical flows when practical.
@@ -127,3 +129,5 @@ Preserve existing user work. Avoid unrelated rewrites, speculative features, unn
 6. Complete security, tests, docs and production build.
 
 Keep every phase buildable. Start with the smallest working vertical slice, then expand.
+
+don't read .env file
