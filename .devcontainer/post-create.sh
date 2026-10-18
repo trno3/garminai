@@ -29,6 +29,13 @@ sudo chown -R "$(whoami)" /commandhistory
 touch /commandhistory/.zsh_history
 
 # ---------------------------------------------------------------
+# Install ws-clipboard (para copiar/pegar en WSL2)
+# ---------------------------------------------------------------
+if ! command -v wl-clipboard >/dev/null 2>&1; then
+  sudo apt-get update && sudo apt-get install -y wl-clipboard
+fi
+
+# ---------------------------------------------------------------
 # 2. RTK (Rust Token Killer) — binario único, sin runtime
 # ---------------------------------------------------------------
 if ! command -v rtk >/dev/null 2>&1; then
