@@ -19,3 +19,4 @@ garmin.env
 *.log
 
 **/pi-config/agent/models.json
+**/pi-config/agent/telegram.json

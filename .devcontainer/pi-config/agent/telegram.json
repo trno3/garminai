@@ -1,9 +1,0 @@
-{
-        "profiles": {
-                "default": {
-                        "botUsername": "trno3aibot",
-                        "botId": 8935607449,
-                        "allowedUserId": 400151214
-                }
-        }
-}
