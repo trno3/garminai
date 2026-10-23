@@ -1,0 +1,15 @@
+{
+  "name": "garmin-workout-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo scripts for the Garmin workout viewer (Go backend, Angular frontend, PostgreSQL).",
+  "scripts": {
+    "backend": "cd backend && DATABASE_URL='postgres://postgres:devpassword@localhost:5432/appdb?sslmode=disable' go run ./cmd/server",
+    "backend:dep": "cd backend && go mod download",
+    "backend:test": "cd backend && PGTEST_DSN=\"$DATABASE_URL\" go test ./...",
+    "postgres": "bash scripts/postgres.sh",
+    "postgres:down": "sudo -n pg_ctlcluster 15 main stop || pg_ctlcluster 15 main stop",
+    "postgres:status": "pg_lsclusters",
+    "db": "npm run postgres && npm run backend"
+  }
+}

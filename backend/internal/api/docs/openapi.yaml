@@ -1,0 +1,508 @@
+openapi: 3.1.0
+info:
+  title: Garmin Workout Viewer API
+  version: 0.1.0
+  description: >
+    REST API for the workout viewer. Activities, laps and time-series samples
+    are stored separately. All timestamps are UTC; optional fields are omitted
+    (never zeroed) when the source data does not provide them.
+servers:
+  - url: http://localhost:8080
+    description: Local dev server
+tags:
+  - name: health
+    description: Liveness and readiness probes.
+  - name: activities
+    description: Import and read activities.
+  - name: samples
+    description: Time-series samples, metrics and laps.
+  - name: dashboard
+    description: Summary statistics and sport distribution.
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      summary: Liveness probe.
+      operationId: healthz
+      responses:
+        '200':
+          description: Server is alive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /readyz:
+    get:
+      tags: [health]
+      summary: Readiness probe; 503 when the database is unreachable.
+      operationId: readyz
+      responses:
+        '200':
+          description: Server and database are ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '503':
+          description: Database not reachable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/activities:
+    get:
+      tags: [activities]
+      summary: List activities with pagination, sorting and filters.
+      operationId: listActivities
+      parameters:
+        - $ref: '#/components/parameters/PaginationQuery'
+        - name: sport
+          in: query
+          description: Normalize sport slug filter, e.g. run, ride, walk.
+          required: false
+          schema:
+            type: string
+        - name: text
+          in: query
+          description: Free-text match against the activity name.
+          required: false
+          schema:
+            type: string
+        - name: start
+          in: query
+          description: Inclusive lower bound, RFC3339 timestamp.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          description: Exclusive upper bound, RFC3339 timestamp.
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated list of activities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      tags: [activities]
+      summary: >
+        Import a FIT/TCX/GPX workout. The file is sent as a multipart form
+        field named "file"; an optional "filename" field overrides the format
+        detection. Idempotent on source id.
+      operationId: uploadActivity
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                filename:
+                  type: string
+                  description: >
+                    Optional override for the detected format. When omitted the
+                    uploaded filename or "activity" is used.
+      responses:
+        '200':
+          description: Imported; source id was already present (duplicate).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '201':
+          description: Imported as a new activity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          description: File accepted but could not be turned into an activity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/activities/{id}:
+    get:
+      tags: [activities]
+      summary: Get a single activity by id.
+      operationId: getActivity
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+      responses:
+        '200':
+          description: The requested activity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/activities/{id}/metrics:
+    get:
+      tags: [samples]
+      summary: Distinct metric kinds available for an activity.
+      operationId: getMetrics
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+      responses:
+        '200':
+          description: The available metric kinds.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricList'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/activities/{id}/samples:
+    get:
+      tags: [samples]
+      summary: >
+        Time-series samples for an activity. When "kind" is omitted all series
+        are returned, grouped by kind.
+      operationId: getSamples
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+        - name: kind
+          in: query
+          description: Restrict to one metric kind, e.g. heart_rate or gps.
+          required: false
+          schema:
+            $ref: '#/components/schemas/MetricKind'
+      responses:
+        '200':
+          description: The requested samples.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sample'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/activities/{id}/laps:
+    get:
+      tags: [samples]
+      summary: Laps for an activity.
+      operationId: getLaps
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+      responses:
+        '200':
+          description: The activity laps.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lap'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/summary:
+    get:
+      tags: [dashboard]
+      summary: Dashboard aggregates over an optional time window.
+      operationId: summary
+      parameters:
+        - name: start
+          in: query
+          description: Inclusive lower bound, RFC3339 timestamp.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          description: Exclusive upper bound, RFC3339 timestamp.
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Summary statistics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/sports:
+    get:
+      tags: [dashboard]
+      summary: Count of activities per normalized sport.
+      operationId: sportDistribution
+      responses:
+        '200':
+          description: Activity count per sport.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SportDistribution'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  parameters:
+    PaginationQuery:
+      name: limit
+      in: query
+      description: Page size (1..200). Defaults to 25.
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 25
+    OffsetQuery:
+      name: offset
+      in: query
+      description: Number of records to skip. Defaults to 0.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    ActivityId:
+      name: id
+      in: path
+      description: Activity id.
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Invalid request parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Requested resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooLarge:
+      description: Uploaded file exceeds the maximum size.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnsupportedMediaType:
+      description: File format could not be detected.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Server-side failure while processing the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Status:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+    Error:
+      type: object
+      required: [error, status]
+      properties:
+        error:
+          type: string
+        status:
+          type: integer
+    MetricKind:
+      type: string
+      description: Time-series metric identifier.
+      enum:
+        - heart_rate
+        - speed
+        - moving_speed
+        - elevation
+        - power
+        - cadence
+        - distance
+        - temperature
+        - gps
+    Activity:
+      type: object
+      required: [id, source_id, name, sport, start_timestamp]
+      properties:
+        id:
+          type: string
+        source_id:
+          type: string
+        name:
+          type: string
+        sport:
+          $ref: '#/components/schemas/Sport'
+        start_timestamp:
+          type: string
+          format: date-time
+        end_timestamp:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+        duration_seconds:
+          type: number
+          format: double
+        moving_duration_seconds:
+          type: number
+          format: double
+        distance_meters:
+          type: number
+          format: double
+        calories:
+          type: number
+          format: double
+        avg_heart_rate:
+          type: integer
+        max_heart_rate:
+          type: integer
+        avg_power:
+          type: integer
+    Sport:
+      type: string
+      description: Normalized sport slug such as run, ride, walk or other.
+      example: run
+    Lap:
+      type: object
+      required: [id, activity_id, index, start_timestamp]
+      properties:
+        id:
+          type: string
+        activity_id:
+          type: string
+        index:
+          type: integer
+        start_timestamp:
+          type: string
+          format: date-time
+        end_timestamp:
+          type: string
+          format: date-time
+        duration_seconds:
+          type: number
+          format: double
+        moving_duration_seconds:
+          type: number
+          format: double
+        distance_meters:
+          type: number
+          format: double
+        calories:
+          type: number
+          format: double
+        avg_heart_rate:
+          type: integer
+        avg_power:
+          type: integer
+    Sample:
+      type: object
+      required: [id, activity_id, kind, timestamp]
+      properties:
+        id:
+          type: string
+        activity_id:
+          type: string
+        kind:
+          $ref: '#/components/schemas/MetricKind'
+        timestamp:
+          type: string
+          format: date-time
+        value:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+    MetricList:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricKind'
+    ActivityPage:
+      type: object
+      required: [total, items]
+      properties:
+        total:
+          type: integer
+          format: int64
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Activity'
+    Summary:
+      type: object
+      required: [activity_count]
+      properties:
+        activity_count:
+          type: integer
+          format: int64
+        distance_meters:
+          type: number
+          format: double
+        duration_seconds:
+          type: number
+          format: double
+        calories:
+          type: number
+          format: double
+        avg_heart_rate:
+          type: integer
+    SportDistribution:
+      type: object
+      required: [sport, count]
+      properties:
+        sport:
+          $ref: '#/components/schemas/Sport'
+        count:
+          type: integer
+          format: int64
+    ImportResult:
+      type: object
+      required: [format, source_id, duplicate]
+      properties:
+        format:
+          type: string
+          example: FIT
+        source_id:
+          type: string
+        activity_id:
+          type: string
+        lap_count:
+          type: integer
+        sample_count:
+          type: integer
+        duplicate:
+          type: boolean

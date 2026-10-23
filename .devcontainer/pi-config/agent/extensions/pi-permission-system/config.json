@@ -1,36 +1,46 @@
 {
   "permission": {
-    "*": "ask",
     "path": {
-      "*": "ask",
-      ".": "allow",
-      ".git/*": "deny",
-      ".env": "deny",
-      ".env.*": "deny",
-      "*.pem": "deny",
-      "*.key": "deny",
-      "~/.ssh/*": "deny",
-      "~/.aws/*": "deny",
-      "~/.gnupg/*": "deny"
+      "**": "allow",
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "**/*.pem": "deny",
+      "**/*.key": "deny",
+      "**/.ssh/**": "deny",
+      "**/.aws/**": "deny",
+      "**/.gnupg/**": "deny",
+      "**/auth.json": "deny"
     },
+    "external_directory": "ask",
+    "external_directory_read": "allow",
+    "external_directory_write": "deny",
+
+    "tools": {
+      "read": "allow",
+      "write": "allow",
+      "edit": "allow",
+      "bash": "ask"
+    },
+
     "bash": {
-      "*": "ask",
-      "export ": "allow",
-      "ls ": "allow",
-      "git log ": "allow",          
-      "git branch ": "allow",       
-      "git status ": "allow",       
-      "grep ": "allow",             
-      "cat ": "allow",              
+      "*": "allow",
+      "export *": "allow",
+      "ls *": "allow",
+      "cat *": "allow",
+      "pwd": "allow",
+      "grep *": "allow",
+      "git status*": "allow",
+      "git log*": "allow",
+      "git diff*": "allow",
+      "npm test*": "allow",
+      "npm run *": "allow",
+      "go build*": "allow",
+      "go test*": "allow",
+      "ng build*": "allow",
       "rm -rf": "deny",
-      "sudo": "ask",
-      "chmod 777": "deny",
-      "eval ": "deny",
-      "exec ": "deny",
-      "curl * | ": "ask",
-      "wget * | ": "ask",
-      "wget -O - | ": "ask"
-    },
-    "external_directory": "deny"
+      "rm -fr": "deny",
+      "eval *": "deny",
+      "sudo *": "ask"
+    }
   }
 }
